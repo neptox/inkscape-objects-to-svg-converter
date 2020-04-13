@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<head>
+  <title>Incscape Object to SVG Converter</title>
+  <style>
+    #convert_btn {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Incscape Object to SVG Converter</h1>
+  <p>Enter the css selectors of your incsape objects e.g:<br>
+    <b>#queen_of_hearts, #king_of_hearts, #ace_of_hearts</b><br>
+    Then click "Convert" to generate svg-files in the current directory and "Download"</p>
+
+  <form id="frm1">
+
+    Choose a source .svg file:<br>
+    <input type='file' onchange='openFile(event)'><br><br>
+    CSS parameter list: (Don't forget "#" or "." for each  id / class!!!!!!)<br>
+    <input type="text" id="id_list" size="100" placeholder="#queen_of_hearts, #king_of_hearts, #ace_of_hearts" required><br><br>
+    Optional Parameters:<br>
+    <input type="text" id="width" value="" placeholder="width (e.g. 300)"><br>
+    <input type="text" id="height" value="" placeholder="height (e.g. 600)"><br>
+    <input type="text" id="viewBox" value="" placeholder="viewBox (e.g.0 0 0 0)"><br><br>
+    <input type="button" id="convert_btn" onclick="convert()" value="Convert & Download">
+  </form>
+  <br>
+  <br>
+  <br>
+  <br>
+  <div id='output'></div>
+
+
+
+
+
+
+
+
+
+
+<script src="./js/snap.svg-min.js"></script>
+<script src="./js/jszip.min.js"></script>
+<script>
+var source_text = null;
+var width = "";
+var height = "";
+var viewBox = "";
+
+var zip = new JSZip();
+var svgZip = zip.folder("svg_files");
+var promise = null;
+
+
+var openFile = function(event) {
+  var input = event.target;
+
+  var reader = new FileReader();
+  reader.onload = function(){
+    source_text = reader.result;
+    var node = document.getElementById('output');
+    node.innerHTML = source_text;
+    console.log(reader.result.substring(0, 200));
+    document.getElementById('convert_btn').style.display = "block";
+
+  };
+  reader.readAsBinaryString(input.files[0]);
+};
+
+function convert() {
+  var all_downloads = [];
+  width = document.getElementById("width").value;
+  height = document.getElementById("height").value;
+  viewBox = document.getElementById("viewBox").value;
+  var id_list = document.getElementById("id_list").value;
+  if (!id_list) {
+    alert('Please add some CSS selectors')
+    return;
+  }
+  var id_string = String(id_list).replace(/[^\w\d\s\.\#\,]/gi, '');
+  var id_array = String(id_list).replace(/[^\w\d\s]/gi, '').split(' ');
+  console.log(id_string);
+  console.log(id_array);
+  var snap = Snap.selectAll(id_string);
+  var i = 0;
+  var prefix = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n<svg width="'+width+'" height="'+height+'" version="1.1" viewBox="'+viewBox+'" xmlns="http://www.w3.org/2000/svg">\n';
+  const suffix = '\n</svg>';
+  snap.forEach(function(obj){
+    var svg_string = prefix + obj + suffix;
+    var svg_name = id_array[i]+".svg";
+    console.log("svg_name: "+svg_name);
+    svgZip.file(svg_name, svg_string);
+    i++;
+  });
+  svgZip.generateAsync({type:"base64"}).then(function (base64) {
+        window.location = "data:application/zip;base64," + base64;
+  });
+
+  };
+
+
+</script>
+
+
+</body>
+
+</html>
