@@ -2,7 +2,7 @@
 <head>
   <title>Incscape Object to SVG Converter</title>
   <style>
-    #convert_btn {
+    #convert_btn, #dwn_btn {
       display: none;
     }
   </style>
@@ -17,16 +17,17 @@
 
     Choose a source .svg file:<br>
     <input type='file' onchange='openFile(event)'><br><br>
-    CSS parameter list: (Don't forget "#" or "." for each  id / class!!!!!!)<br>
+    CSS parameter list:<br>
     <input type="text" id="id_list" size="100" placeholder="#queen_of_hearts, #king_of_hearts, #ace_of_hearts" required><br><br>
     Optional Parameters:<br>
     <input type="text" id="width" value="" placeholder="width (e.g. 300)"><br>
     <input type="text" id="height" value="" placeholder="height (e.g. 600)"><br>
     <input type="text" id="viewBox" value="" placeholder="viewBox (e.g.0 0 0 0)"><br><br>
-    <input type="button" id="convert_btn" onclick="convert()" value="Convert & Download">
+    <input type="button" id="convert_btn" onclick="convert()" value="Convert">
   </form>
   <br>
   <br>
+  <input type="button" id="dwn_btn" onclick="download()" value="Download">
   <br>
   <br>
   <div id='output'></div>
@@ -44,9 +45,6 @@
 <script src="./js/jszip.min.js"></script>
 <script>
 var source_text = null;
-var width = "";
-var height = "";
-var viewBox = "";
 
 var zip = new JSZip();
 var svgZip = zip.folder("svg_files");
@@ -70,12 +68,13 @@ var openFile = function(event) {
 
 function convert() {
   var all_downloads = [];
-  width = document.getElementById("width").value;
-  height = document.getElementById("height").value;
-  viewBox = document.getElementById("viewBox").value;
+  var width = document.getElementById("width").value;
+  var height = document.getElementById("height").value;
+  var viewBox = document.getElementById("viewBox").value;
   var id_list = document.getElementById("id_list").value;
+
   if (!id_list) {
-    alert('Please add some CSS selectors')
+    alert('Please add some CSS id-selectors')
     return;
   }
   var id_string = String(id_list).replace(/[^\w\d\s\.\#\,]/gi, '');
@@ -93,10 +92,14 @@ function convert() {
     svgZip.file(svg_name, svg_string);
     i++;
   });
-  svgZip.generateAsync({type:"base64"}).then(function (base64) {
-        window.location = "data:application/zip;base64," + base64;
-  });
+  document.getElementById('dwn_btn').style.display = "block";
 
+  };
+
+  function download() {
+    svgZip.generateAsync({type:"base64"}).then(function (base64) {
+          window.location = "data:application/zip;base64," + base64;
+    });
   };
 
 
